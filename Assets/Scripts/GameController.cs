@@ -11,8 +11,8 @@ public enum GAME_STATE
 
 public class GameController : MonoBehaviour
 {
-    private const float ROTATE_SPEED_X = 35;
-    private const float ROTATE_SPEED_Y = 35;
+    private const float ROTATE_SPEED_X = 25;
+    private const float ROTATE_SPEED_Y = 25;
 
     private const float SPAWN_DIST_MOVING = 1.5f;
 
@@ -80,7 +80,7 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Physics.gravity = new Vector3(0, -120.0f, 0);
+        Physics.gravity = new Vector3(0, -100.0f, 0);
 
         rigidBody = sphere.GetComponent<Rigidbody>();
         _noJump = sphere.GetComponent<NoJump>();
@@ -218,29 +218,32 @@ public class GameController : MonoBehaviour
         {
             float changeX = dx * ROTATE_SPEED_X * Time.deltaTime;
             float changeY = dy * ROTATE_SPEED_Y * Time.deltaTime;
-            
-            if (xRotation + changeX > X_ROT_MIN && xRotation + changeX < X_ROT_MAX)
-            {
-                xRotation +=changeX;
-                Vector3 xAxis = (_currentLevel.g2.position-_currentLevel.y2.position).normalized;
-                //_currentLevel.rotateAround(rotateAround,  Vector3.right, changeX);
-                _currentLevel.rotateAround(rotateAround,  xAxis, changeX);
-            }
-           
-            if (yRotation + changeY > Y_ROT_MIN && yRotation + changeY < Y_ROT_MAX)
-            {
-                yRotation +=changeY;
-                Vector3 yAxis = (_currentLevel.c2.position - _currentLevel.g2.position).normalized;
-                //_currentLevel.rotateAround(rotateAround, Vector3.forward, changeY);
-                _currentLevel.rotateAround(rotateAround, yAxis, changeY);
-            }
+
+            rotateGameInputProcess(rotateAround, changeX, changeY);
 
 
         }
         rigidBody.AddForce(Vector3.up, ForceMode.Force);
         
-        Vector3 jumpDir = _currentLevel.g1.position - _currentLevel.g2.position;
-        _noJump.jumpVector = jumpDir.normalized;
+    }
+
+    public void rotateGameInputProcess(Vector3 rotateAround, float changeX, float changeY)
+    {
+        if (xRotation + changeX > X_ROT_MIN && xRotation + changeX < X_ROT_MAX)
+        {
+            xRotation +=changeX;
+            Vector3 xAxis = (_currentLevel.g2.position-_currentLevel.y2.position).normalized;
+            //_currentLevel.rotateAround(rotateAround,  Vector3.right, changeX);
+            _currentLevel.rotateAround(rotateAround,  xAxis, changeX);
+        }
+           
+        if (yRotation + changeY > Y_ROT_MIN && yRotation + changeY < Y_ROT_MAX)
+        {
+            yRotation +=changeY;
+            Vector3 yAxis = (_currentLevel.c2.position - _currentLevel.g2.position).normalized;
+            //_currentLevel.rotateAround(rotateAround, Vector3.forward, changeY);
+            _currentLevel.rotateAround(rotateAround, yAxis, changeY);
+        }
     }
     
 }

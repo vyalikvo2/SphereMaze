@@ -22,19 +22,24 @@ public class Level : MonoBehaviour
     public Transform NextLevelPos;
     public NoJump noJump;
     
+    private bool _inited = false;
+    
     // Start is called before the first frame update
     void Start()
     {
         levelMeshes = new List<MeshRenderer>();
         levelMeshes.Add(ramp1);
         levelMeshes.Add(ramp2);
+
+        _inited = true;
     }
 
     public void rotateAround(Vector3 point, Vector3 axis, float power)
     {
+        if (!_inited) return;
         for (int i = 0; i < levelMeshes.Count; i++)
         {
-            levelMeshes[i].transform.RotateAround(point,axis,power);
+            levelMeshes[i].transform.RotateAround(point, axis, power);
         }
     }
 }
