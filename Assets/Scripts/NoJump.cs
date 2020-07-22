@@ -18,6 +18,11 @@ public class NoJump : MonoBehaviour
         jumpVector = new Vector3(0, 1, 0);
     }
 
+    public void ResetLevel()
+    {
+        noJumpZone = false;
+    }
+
     void OnTriggerEnter(Collider collider)
     {
         if (collider.gameObject.tag == "NoJump")
@@ -29,12 +34,15 @@ public class NoJump : MonoBehaviour
         if (collider.gameObject.tag == "EndLevel")
         {
             gc.OnLevelEnd();
-            noJumpZone = false;
         }
         
         if (collider.gameObject.tag == "Dead")
         {
             gc.OnDeadHit();
+        }
+        if (collider.gameObject.tag == "ResetCamera")
+        {
+            gc.ResetCamera();
         }
     }
     
@@ -50,6 +58,7 @@ public class NoJump : MonoBehaviour
     void Update()
     {
         if (gc.state != GAME_STATE.GAME) return;
+        Debug.Log(noJumpZone);
         if (noJumpZone)
         {
             _rigidbody.AddForce(-jumpVector * 60, ForceMode.Acceleration);

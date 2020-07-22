@@ -10,6 +10,7 @@ public class Level : MonoBehaviour
     public Transform g1;
     public Transform g2;
     public Transform c2;
+    public Transform y2;
     
     public MeshRenderer ramp1;
     public MeshRenderer ramp2;
@@ -34,9 +35,6 @@ public class Level : MonoBehaviour
         for (int i = 0; i < levelMeshes.Count; i++)
         {
             levelMeshes[i].transform.RotateAround(point,axis,power);
-            
-            //Vector3 rot = new Vector3(levelMeshes[i].transform.rotation.x, levelMeshes[i].transform.rotation.y, levelMeshes[i].transform.rotation.z);
-            //nojump.jumpVector = newRot.normalized;
         }
     }
 }

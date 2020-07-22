@@ -14,7 +14,7 @@ public class GameController : MonoBehaviour
     private const float ROTATE_SPEED_X = 35;
     private const float ROTATE_SPEED_Y = 35;
 
-    private const float SPAWN_DIST_MOVING = 0.7f;
+    private const float SPAWN_DIST_MOVING = 1.5f;
 
     public GameObject sphere;
     public Rigidbody rigidBody;
@@ -31,11 +31,11 @@ public class GameController : MonoBehaviour
     private float xRotation = 0;
     private float yRotation = 0;
     
-    private float X_ROT_MIN = -12;
-    private float X_ROT_MAX = 12;
+    private float X_ROT_MIN = -18;
+    private float X_ROT_MAX = 18;
     
-    private float Y_ROT_MIN = -12;
-    private float Y_ROT_MAX = 12;
+    private float Y_ROT_MIN = -13;
+    private float Y_ROT_MAX = 13;
 
     private int lives = 0;
 
@@ -43,6 +43,9 @@ public class GameController : MonoBehaviour
     private float moveToSpawnTime;
 
     public CameraMovement camera;
+
+    private Quaternion startLevelDirRot;
+    private float plusedRot = 0;
 
     public void Reset()
     {
@@ -65,6 +68,10 @@ public class GameController : MonoBehaviour
         rigidBody.angularVelocity = Vector3.zero;
         sphere.transform.position = Vector3.zero;
 
+        camera.curLook = camera.startLook;
+        camera.updateCamera();
+        plusedRot = 0;
+
         init();
 
         camera.track = true;
@@ -85,11 +92,10 @@ public class GameController : MonoBehaviour
 
     void init()
     {
-        CreateLevel();
-        CreateNextLevel();
-
+        CreateStartLevel();
         moveToSpawnTime = 0;
         state = GAME_STATE.MOVE_TO_SPAWN;
+        _noJump.ResetLevel();
     }
     
 
@@ -99,6 +105,8 @@ public class GameController : MonoBehaviour
         _prevLevel = _currentLevel;
         _prevLevel.noJump = null;
         
+        CreateNextLevel();
+        _noJump.ResetLevel();
         _currentLevel = _nextLevel;
         _currentLevel.noJump = _noJump;
 
@@ -107,8 +115,18 @@ public class GameController : MonoBehaviour
         rigidBody.rotation = Quaternion.identity;
         rigidBody.angularVelocity = Vector3.zero;
         
-        CreateNextLevel();
+        
         state = GAME_STATE.MOVE_TO_SPAWN;
+    }
+
+    public void ResetCamera()
+    {
+        if (state != GAME_STATE.GAME_OVER)
+        {
+            camera.curLook = camera.startLook;
+            camera.updateCamera();
+            plusedRot = 0;
+        }
     }
 
     void onSpawn()
@@ -123,16 +141,18 @@ public class GameController : MonoBehaviour
         lives = 0;
     }
 
-    void CreateLevel()
+    void CreateStartLevel()
     {
-        GameObject levelGO = Instantiate(LevelPrefab, sphere.transform.position + new Vector3(0,-100,0), Quaternion.identity, transform);
+        GameObject levelGO = Instantiate(LevelPrefab, sphere.transform.position + new Vector3(0,0,0), Quaternion.identity, transform);
         _currentLevel = levelGO.GetComponent<Level>();
         _currentLevel.noJump = _noJump;
+
+        startLevelDirRot = Quaternion.LookRotation(_currentLevel.c2.position - _currentLevel.g2.position);
     }
 
     void CreateNextLevel()
     {
-        GameObject levelGO = Instantiate(LevelPrefab, _currentLevel.NextLevelPos.position + new Vector3(0,-60,0), Quaternion.identity, transform);
+        GameObject levelGO = Instantiate(LevelPrefab, sphere.transform.position + new Vector3(0,-5,0), Quaternion.identity, transform);
         _nextLevel = levelGO.GetComponent<Level>();
     }
 
@@ -164,12 +184,20 @@ public class GameController : MonoBehaviour
     void mainUpdateCamera()
     {
         camera.updateCamera();
+        
+        Quaternion curlevelRot = Quaternion.LookRotation(_currentLevel.c2.position - _currentLevel.g2.position);
+        float rotateChange = curlevelRot.eulerAngles.y - startLevelDirRot.eulerAngles.y + plusedRot;
+        
+        camera.transform.RotateAround(sphere.transform.position, Vector3.up, rotateChange);
+        plusedRot -= rotateChange;
+        
+        camera.curLook = Quaternion.LookRotation(sphere.transform.position - camera.transform.position);
     }
     
     void moveToSpawn()
     {
-        rigidBody.velocity = (_currentLevel.spawn.position - sphere.transform.position) * 10;
-        
+        //rigidBody.velocity = (_currentLevel.spawn.position - sphere.transform.position) * 10;
+        rigidBody.velocity = new Vector3( 0, rigidBody.velocity.y, 0);
         if ((sphere.transform.position - _currentLevel.spawn.position).sqrMagnitude < SPAWN_DIST_MOVING*SPAWN_DIST_MOVING )
         {
             state = GAME_STATE.GAME; // spawned
@@ -184,28 +212,27 @@ public class GameController : MonoBehaviour
         float dx = Input.GetAxis("Horizontal");
         float dy = Input.GetAxis("Vertical");
         
-       
-
         Vector3 rotateAround = rotationPoint.transform.position;
-        //camera.track = false;
-        camera.transform.RotateAround(rotationPoint.transform.position,Vector3.forward, 2);
 
         if (dx !=0 || dy!=0 )
         {
             float changeX = dx * ROTATE_SPEED_X * Time.deltaTime;
             float changeY = dy * ROTATE_SPEED_Y * Time.deltaTime;
-
-
+            
             if (xRotation + changeX > X_ROT_MIN && xRotation + changeX < X_ROT_MAX)
             {
                 xRotation +=changeX;
-                _currentLevel.rotateAround(rotateAround,  Vector3.right, changeX);
+                Vector3 xAxis = (_currentLevel.g2.position-_currentLevel.y2.position).normalized;
+                //_currentLevel.rotateAround(rotateAround,  Vector3.right, changeX);
+                _currentLevel.rotateAround(rotateAround,  xAxis, changeX);
             }
            
             if (yRotation + changeY > Y_ROT_MIN && yRotation + changeY < Y_ROT_MAX)
             {
                 yRotation +=changeY;
-                _currentLevel.rotateAround(rotateAround, Vector3.forward, changeY);
+                Vector3 yAxis = (_currentLevel.c2.position - _currentLevel.g2.position).normalized;
+                //_currentLevel.rotateAround(rotateAround, Vector3.forward, changeY);
+                _currentLevel.rotateAround(rotateAround, yAxis, changeY);
             }
 
 

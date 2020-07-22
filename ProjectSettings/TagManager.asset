@@ -7,6 +7,7 @@ TagManager:
   - NoJump
   - EndLevel
   - Dead
+  - ResetCamera
   layers:
   - Default
   - TransparentFX
